@@ -36,6 +36,7 @@ public class Cal extends JFrame implements ActionListener {
             JButton button = new JButton(text);
             button.addActionListener(this);
             panel.add(button);
+            button.setBackground(Color.lightGray);
         }
 
         add(panel, BorderLayout.CENTER);
