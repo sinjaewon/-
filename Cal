@@ -1,0 +1,107 @@
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+public class Cal extends JFrame implements ActionListener {
+    private JTextField textField;
+    private double num1, num2, result;
+    private String operator;
+
+    public Cal() {
+        // 프레임 설정
+        setTitle("계산기");
+        setSize(350, 550);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
+
+        // 텍스트 필드
+        textField = new JTextField();
+        add(textField, BorderLayout.NORTH);
+
+        // 패널 및 버튼 설정
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(5, 4));
+
+        String[] buttons = {
+                "7", "8", "9", "/",
+                "4", "5", "6", "*",
+                "1", "2", "3", "-",
+                "0", "C", "=", "+",
+                "sin", "cos", "tan", "√"
+        };
+
+        for (String text : buttons) {
+            JButton button = new JButton(text);
+            button.addActionListener(this);
+            panel.add(button);
+        }
+
+        add(panel, BorderLayout.CENTER);
+
+        setVisible(true);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        String command = e.getActionCommand();
+
+        if (command.charAt(0) >= '0' && command.charAt(0) <= '9') {
+            textField.setText(textField.getText() + command);
+        } else if (command.equals("C")) {
+            textField.setText("");
+            num1 = num2 = result = 0;
+            operator = null;
+        } else if (command.equals("=")) {
+            num2 = Double.parseDouble(textField.getText());
+            performOperation();
+        } else if (command.equals("√")) {
+            double value = Double.parseDouble(textField.getText());
+            result = Math.sqrt(value);
+            textField.setText(String.valueOf(result));
+        } else {
+            if (!textField.getText().isEmpty()) {
+                num1 = Double.parseDouble(textField.getText());
+                operator = command;
+                textField.setText("");
+            }
+        }
+    }
+
+    private void performOperation() {
+        switch (operator) {
+            case "+":
+                result = num1 + num2;
+                break;
+            case "-":
+                result = num1 - num2;
+                break;
+            case "*":
+                result = num1 * num2;
+                break;
+            case "/":
+                if (num2 != 0) {
+                    result = num1 / num2;
+                } else {
+                    textField.setText("0으로 나눌 수 없습니다.");
+                    return;
+                }
+                break;
+            case "sin":
+                result = Math.sin(Math.toRadians(num1));
+                break;
+            case "cos":
+                result = Math.cos(Math.toRadians(num1));
+                break;
+            case "tan":
+                result = Math.tan(Math.toRadians(num1));
+                break;
+        }
+        textField.setText(String.valueOf(result));
+    }
+
+    public static void main(String[] args) {
+        new Cal();
+    }
+}
