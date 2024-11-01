@@ -1,105 +1,138 @@
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
-public class Cal extends JFrame implements ActionListener {
+public class Cal extends JFrame {
     private JTextField textField;
-    private double num1, num2, result;
+    private double firstOperand;
     private String operator;
+    private boolean startNewNumber;
 
-    public Cal() {
-        // 프레임 설정
+    Cal() {
         setTitle("계산기");
-        setSize(350, 550);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // 텍스트 필드
+        // 텍스트 필드 추가
         textField = new JTextField();
+        textField.setEditable(false);
+        textField.setPreferredSize(new Dimension(520, 30));
+        textField.setText("0");
         add(textField, BorderLayout.NORTH);
 
-        // 패널 및 버튼 설정
-        JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(5, 4));
+        // 버튼 패널 생성
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new GridLayout(0, 5, 3, 3));
+        add(buttonPanel, BorderLayout.CENTER);
 
-        String[] buttons = {
-                "7", "8", "9", "/",
-                "4", "5", "6", "*",
-                "1", "2", "3", "-",
-                "0", "C", "=", "+",
-                "sin", "cos", "tan", "√"
-        };
+        // 버튼 추가
+        buttonPanel.add(createButton("7", Color.blue));
+        buttonPanel.add(createButton("8", Color.blue));
+        buttonPanel.add(createButton("9", Color.blue));
+        buttonPanel.add(createButton("/", Color.red));
+        buttonPanel.add(createButton("C", Color.red));
+        
+        buttonPanel.add(createButton("4", Color.blue));
+        buttonPanel.add(createButton("5", Color.blue));
+        buttonPanel.add(createButton("6", Color.blue));
+        buttonPanel.add(createButton("x", Color.red));
+        buttonPanel.add(createButton("%", Color.red));
+        
+        buttonPanel.add(createButton("1", Color.blue));
+        buttonPanel.add(createButton("2", Color.blue));
+        buttonPanel.add(createButton("3", Color.blue));
+        buttonPanel.add(createButton("-", Color.red));
+        buttonPanel.add(createButton("", Color.red));
+        
+        buttonPanel.add(createButton("0", Color.blue));
+        buttonPanel.add(createButton("", Color.blue));
+        buttonPanel.add(createButton("", Color.blue));
+        buttonPanel.add(createButton("+", Color.red));
+        
+        JButton equalsButton = createButton("=", Color.red);
+        equalsButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                calculate(Double.parseDouble(textField.getText()));
+            }
+        });
+        buttonPanel.add(equalsButton);
 
-        for (String text : buttons) {
-            JButton button = new JButton(text);
-            button.addActionListener(this);
-            panel.add(button);
-            button.setBackground(Color.lightGray);
-        }
-
-        add(panel, BorderLayout.CENTER);
-
+        // 기본 설정
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(520, 250);
         setVisible(true);
     }
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        String command = e.getActionCommand();
+    // 버튼을 생성하고 배경색 및 글씨 색상을 설정하는 메서드
+    private JButton createButton(String text, Color textColor) {
+        JButton button = new JButton(text);
+        button.setBackground(Color.yellow);
+        button.setForeground(textColor);
+        button.addActionListener(new ButtonClickListener());
+        return button;
+    }
 
-        if (command.charAt(0) >= '0' && command.charAt(0) <= '9') {
-            textField.setText(textField.getText() + command);
-        } else if (command.equals("C")) {
-            textField.setText("");
-            num1 = num2 = result = 0;
-            operator = null;
-        } else if (command.equals("=")) {
-            num2 = Double.parseDouble(textField.getText());
-            performOperation();
-        } else if (command.equals("√")) {
-            double value = Double.parseDouble(textField.getText());
-            result = Math.sqrt(value);
-            textField.setText(String.valueOf(result));
-        } else {
-            if (!textField.getText().isEmpty()) {
-                num1 = Double.parseDouble(textField.getText());
+    // 버튼 클릭 이벤트 리스너
+    private class ButtonClickListener implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            String command = ((JButton) e.getSource()).getText();
+            if (command.equals("C")) {
+                textField.setText("0");
+                firstOperand = 0;
+                operator = null;
+                startNewNumber = true;
+            } else if ("1234567890.".contains(command)) {
+                if (startNewNumber) {
+                    textField.setText(command);
+                    startNewNumber = false;
+                } else {
+                    textField.setText(textField.getText().equals("0") ? command : textField.getText() + command);
+                }
+            } else {
+                if (operator != null) {
+                    calculate(Double.parseDouble(textField.getText()));
+                } else {
+                    firstOperand = Double.parseDouble(textField.getText());
+                }
                 operator = command;
-                textField.setText("");
+                startNewNumber = true;
             }
         }
     }
 
-    private void performOperation() {
+    // 계산 메서드
+    private void calculate(double secondOperand) {
         switch (operator) {
             case "+":
-                result = num1 + num2;
+                firstOperand += secondOperand;
                 break;
             case "-":
-                result = num1 - num2;
+                firstOperand -= secondOperand;
                 break;
-            case "*":
-                result = num1 * num2;
+            case "x":
+                firstOperand *= secondOperand;
                 break;
             case "/":
-                if (num2 != 0) {
-                    result = num1 / num2;
+                if (secondOperand != 0) {
+                    firstOperand /= secondOperand;
                 } else {
-                    textField.setText("0으로 나눌 수 없습니다.");
+                    textField.setText("Error");
                     return;
                 }
                 break;
-            case "sin":
-                result = Math.sin(Math.toRadians(num1));
-                break;
-            case "cos":
-                result = Math.cos(Math.toRadians(num1));
-                break;
-            case "tan":
-                result = Math.tan(Math.toRadians(num1));
+            case "%":
+                firstOperand %= secondOperand;
                 break;
         }
-        textField.setText(String.valueOf(result));
+        textField.setText(String.valueOf(firstOperand));
+        operator = null;
+        startNewNumber = true;
     }
 
     public static void main(String[] args) {
