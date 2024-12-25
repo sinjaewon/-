@@ -1,0 +1,164 @@
+package sjw;
+
+/**
+ * ClubMemberManagement 프로그램은 학과별 동아리와 회원을 관리합니다.
+ * 사용자는 동아리를 생성하고, 회원을 추가/탈퇴시키며, 동아리 회원 목록을 조회할 수 있습니다.
+ */
+import java.io.*;
+import java.util.*;
+
+public class ClubMemberManagement {
+    /**
+     * 학과별 동아리와 그 동아리의 회원을 저장하는 맵.
+     * Key: 학과 이름
+     * Value: 동아리 이름과 회원 목록을 저장하는 맵
+     */
+    private static Map<String, Map<String, Set<String>>> departmentClubs = new HashMap<>();
+
+    /**
+     * 프로그램의 진입점으로, 사용자로부터 입력을 받아 동아리 관리 작업을 수행합니다.
+     */
+    public static void main(String[] args) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        String menu = """
+        === 동아리 회원 관리 시스템 ===
+        1. 동아리 생성
+        2. 회원 가입
+        3. 회원 탈퇴
+        4. 동아리 회원 목록 보기
+        5. 프로그램 종료
+        선택: """;
+
+        while (true) {
+            System.out.print(menu);
+            int choice;
+            try {
+                choice = Integer.parseInt(reader.readLine());
+            } catch (NumberFormatException e) {
+                System.out.println("유효한 숫자를 입력하세요.");
+                continue;
+            }
+
+            switch (choice) {
+                case 1: createClub(reader); break;
+                case 2: addMember(reader); break;
+                case 3: removeMember(reader); break;
+                case 4: viewMembers(reader); break;
+                case 5: 
+                    System.out.println("프로그램을 종료합니다.");
+                    reader.close();
+                    return;
+                default: 
+                    System.out.println("올바른 메뉴를 선택하세요.");
+            }
+
+            // Pause for user to review the output
+            System.out.println("\n계속하려면 Enter 키를 누르세요...");
+            reader.readLine();
+        }
+    }
+
+    /**
+     * 새로운 동아리를 생성합니다.
+     * @param reader 사용자 입력을 읽는 BufferedReader
+     * @throws IOException 입력 오류 발생 시
+     */
+    private static void createClub(BufferedReader reader) throws IOException {
+        System.out.print("학과 이름: ");
+        String department = reader.readLine();
+        System.out.print("동아리 이름: ");
+        String club = reader.readLine();
+
+        departmentClubs.putIfAbsent(department, new HashMap<>());
+        Map<String, Set<String>> clubs = departmentClubs.get(department);
+
+        if (clubs.containsKey(club)) {
+            System.out.println("이미 존재하는 동아리입니다.");
+        } else {
+            clubs.put(club, new HashSet<>());
+            System.out.println("동아리가 생성되었습니다.");
+        }
+    }
+
+    /**
+     * 동아리에 새로운 회원을 추가합니다.
+     * @param reader 사용자 입력을 읽는 BufferedReader
+     * @throws IOException 입력 오류 발생 시
+     */
+    private static void addMember(BufferedReader reader) throws IOException {
+        System.out.print("학과 이름: ");
+        String department = reader.readLine();
+        System.out.print("동아리 이름: ");
+        String club = reader.readLine();
+        System.out.print("회원 이름: ");
+        String member = reader.readLine();
+
+        departmentClubs.putIfAbsent(department, new HashMap<>());
+        Map<String, Set<String>> clubs = departmentClubs.get(department);
+        clubs.putIfAbsent(club, new HashSet<>());
+
+        Set<String> members = clubs.get(club);
+        if (!members.add(member)) {
+            System.out.println("회원이 이미 존재합니다.");
+        } else {
+            System.out.println("회원이 추가되었습니다.");
+        }
+    }
+
+    /**
+     * 동아리에서 회원을 제거합니다.
+     * @param reader 사용자 입력을 읽는 BufferedReader
+     * @throws IOException 입력 오류 발생 시
+     */
+    private static void removeMember(BufferedReader reader) throws IOException {
+        System.out.print("학과 이름: ");
+        String department = reader.readLine();
+        System.out.print("동아리 이름: ");
+        String club = reader.readLine();
+        System.out.print("회원 이름: ");
+        String member = reader.readLine();
+
+        Map<String, Set<String>> clubs = departmentClubs.get(department);
+        if (clubs == null || !clubs.containsKey(club)) {
+            System.out.println("동아리가 존재하지 않습니다.");
+        } else {
+            Set<String> members = clubs.get(club);
+            if (!members.remove(member)) {
+                System.out.println("회원이 존재하지 않습니다.");
+            } else {
+                System.out.println("회원이 탈퇴되었습니다.");
+            }
+        }
+    }
+
+    /**
+     * 동아리의 회원 목록을 조회하여 출력합니다.
+     * @param reader 사용자 입력을 읽는 BufferedReader
+     * @throws IOException 입력 오류 발생 시
+     */
+    private static void viewMembers(BufferedReader reader) throws IOException {
+        System.out.print("학과 이름: ");
+        String department = reader.readLine();
+        System.out.print("동아리 이름: ");
+        String club = reader.readLine();
+
+        if (!departmentClubs.containsKey(department)) {
+            System.out.println("학과가 존재하지 않습니다.");
+            return;
+        }
+
+        Map<String, Set<String>> clubs = departmentClubs.get(department);
+        if (!clubs.containsKey(club)) {
+            System.out.println("동아리가 존재하지 않습니다.");
+            return;
+        }
+
+        Set<String> members = clubs.get(club);
+        if (members.isEmpty()) {
+            System.out.println("동아리에 회원이 없습니다.");
+        } else {
+            System.out.println("회원 목록:");
+            members.forEach(System.out::println);
+        }
+    }
+}
